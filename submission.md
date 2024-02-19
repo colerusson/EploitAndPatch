@@ -1,7 +1,7 @@
 # Start Here
 
-`Name`: Your name  
-`NetID`: Your netid
+`Name`: Cole Russon  
+`NetID`: crusson
 
 For each problem below, you will,
 
