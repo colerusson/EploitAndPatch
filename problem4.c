@@ -33,6 +33,11 @@ int main() {
 
   result = value * factor;
 
+  if (result < 0) {
+    printf("Error: Result is negative!\n");
+    return -1;
+  }
+
   if (result == reset_key) {
     // reset_key is only usable by admins, normal users shouldn't worry about it...
     // Plus it's not like you can multiple 2 positive numbers to get a negative number anyway...

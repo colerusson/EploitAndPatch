@@ -1,0 +1,16 @@
+--- .originals/problem6.c	2024-02-19 01:05:08.141457700 +0000
++++ problem6.c	2024-03-03 23:22:05.394358300 +0000
+@@ -42,11 +42,8 @@
+         printf("Incorrect guess. ");
+       }
+     } else {
+-      printf("You've run out of guesses! Please quit by pressing 'q': ");
+-      scanf("%1s", input);
+-      if (strstr(input, "q")) {
+-        break;
+-      }
++      printf("You've run out of guesses! Thanks for playing.\n ");
++      break;
+     }
+ 
+     --remainingGuesses;

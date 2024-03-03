@@ -37,7 +37,7 @@ int check_withdraw_amount(int amount, struct user_account *u) {
 
 // Handle a large withdraw
 void large_withdraw(struct user_account *u) {
-  unsigned int withdrawal;
+  unsigned char withdrawal;
 
   printf("How much would you like to withdraw?\n> ");
   scanf("%u", &withdrawal);

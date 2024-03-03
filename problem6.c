@@ -42,11 +42,8 @@ int main() {
         printf("Incorrect guess. ");
       }
     } else {
-      printf("You've run out of guesses! Please quit by pressing 'q': ");
-      scanf("%1s", input);
-      if (strstr(input, "q")) {
-        break;
-      }
+      printf("You've run out of guesses! Thanks for playing.\n ");
+      break;
     }
 
     --remainingGuesses;
