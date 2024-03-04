@@ -10,23 +10,19 @@ void flag() {
 bool checkPassword(char *input) __attribute__((stack_protect));
 bool checkPassword(char *input) {
   char passwordBuffer[16];
-  char secret[16];
- 
-  // Set the secret value. Hidden from prying eyes...
+  const char secret[16] = "secret_password";
 
-  // Check that the passwords match. We're using my super special comparison function that
-  // shifts password characters over by 1... throws off the hackers!
-  strcpy(passwordBuffer, input);
+  // Check that the passwords match securely
+  strncpy(passwordBuffer, input, sizeof(passwordBuffer)); // Use strncpy for safety
 
   for (size_t i = 0; i < sizeof(passwordBuffer); i++) {
     passwordBuffer[i]++;
   }
 
-  for (size_t i = 0; i < sizeof(secret); i++) {
-    if (secret[i] != passwordBuffer[i]) {
-      printf("Access denied!\n");
-      return false;
-    }
+  // Secure comparison
+  if (memcmp(secret, passwordBuffer, sizeof(secret)) != 0) {
+    printf("Access denied!\n");
+    return false;
   }
 
   return true;

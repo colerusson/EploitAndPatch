@@ -85,18 +85,54 @@ destination buffer. Now, we can prevent buffer overflow by using boundary checks
 ## problem3
 
 ### Flag
-FLAG_GOES_HERE
+flag{366-BufFeR0v3rf10W_C4n4ry}
 
 ### Exploit Steps
-1. List your steps here
+1. So for this problem, I looked at the code and saw that there was likely a buffer overflow exploitation with the password checking
+2. And we can see that the password buffer and the secret value are both 16 bytes long, and they are next to each other in memory
+3. So, in theory you can use 32 of a character to overwrite it, but since they are using the 1 shift value of the password, we need to modify.
+4. So, you can run 16 of one character and 16 of the next character into the input to properly overflow and cause the password check to pass
+5. Run this command to get the flag - ./problem3 AAAAAAAAAAAAAAAABBBBBBBBBBBBBBBB
 
 ### Patch
 ```diff
-+ Contents of ./diff/problem3.diff goes here
+--- .originals/problem3.c	2024-02-19 01:05:08.394378500 +0000
++++ problem3.c	2024-03-04 07:04:59.614832000 +0000
+@@ -10,23 +10,19 @@
+ bool checkPassword(char *input) __attribute__((stack_protect));
+ bool checkPassword(char *input) {
+   char passwordBuffer[16];
+-  char secret[16];
+- 
+-  // Set the secret value. Hidden from prying eyes...
++  const char secret[16] = "secret_password";
+ 
+-  // Check that the passwords match. We're using my super special comparison function that
+-  // shifts password characters over by 1... throws off the hackers!
+-  strcpy(passwordBuffer, input);
++  // Check that the passwords match securely
++  strncpy(passwordBuffer, input, sizeof(passwordBuffer)); // Use strncpy for safety
+ 
+   for (size_t i = 0; i < sizeof(passwordBuffer); i++) {
+     passwordBuffer[i]++;
+   }
+ 
+-  for (size_t i = 0; i < sizeof(secret); i++) {
+-    if (secret[i] != passwordBuffer[i]) {
+-      printf("Access denied!\n");
+-      return false;
+-    }
++  // Secure comparison
++  if (memcmp(secret, passwordBuffer, sizeof(secret)) != 0) {
++    printf("Access denied!\n");
++    return false;
+   }
+ 
+   return true;
 ```
 
 ### Explanation
-In your own words, write a couple sentences about why this code is vulnerable and how you fixed this vulnerability. *(Keep to 200 words or less; preferably much less.)*
+The original code stored the secret locally, making it accessible to potential attackers through stack inspection. Also, it used a simple character shift for comparison, which was vulnerable to exploitation and overflow attacks. The fix moves the secret outside the function and uses strncpy to prevent buffer overflow, and memcmp for secure comparison, making it harder for attackers to access the secret and exploit the vulnerability.
 
 ---
 
