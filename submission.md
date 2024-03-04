@@ -315,17 +315,62 @@ and exploit this. An easy fix I did was to simply just break and quit the progra
 ## problem7
 
 ### Flag
-FLAG_GOES_HERE
+flag{366-Rac3c0ndi7i0N_2}
 
 ### Exploit Steps
-1. List your steps here
+1. First, I analyzed the code and tried to see where a potential exploit could be
+2. I saw that there was threading being used, without protective locks, and all the queries were loaded and run at the same time
+3. So, I decided that we needed to try and run a bunch of withdrawals at the same time that might all run and see a valid balance,
+4. and then remove it all at the same time, causing the balance to go negative and trigger the flag()
+5. So, I loaded four withdrawals of 1000, and even though it didn't work every time, due to how the threads worked, but it did eventually work.
 
 ### Patch
 ```diff
-+ Contents of ./diff/problem7.diff goes here
+--- .originals/problem7.c	2024-02-19 01:05:08.364762500 +0000
++++ problem7.c	2024-03-04 21:22:36.958720100 +0000
+@@ -6,6 +6,7 @@
+ #include <string.h>
+ 
+ static const int MAX_BALANCE = 2000000000;
++pthread_mutex_t balance_mutex = PTHREAD_MUTEX_INITIALIZER;
+ 
+ int accountBalance = 1000;
+ 
+@@ -25,10 +26,12 @@
+ 
+   // Subtraction seems dangerous... I'll implement my own awesome subtraction
+   // method that must be safe!
++  pthread_mutex_lock(&balance_mutex);
+   printf("Connecting to server to process withdrawal of $%hu...\n", amount);
+   for (unsigned short i = 0; i < amount; i++) {
+     --accountBalance;
+   }
++  pthread_mutex_unlock(&balance_mutex);
+   return NULL;
+ }
+ 
+@@ -36,9 +39,11 @@
+ void *deposit(void *arg) {
+   unsigned short amount = *(unsigned short *)arg;
+ 
++  pthread_mutex_lock(&balance_mutex);
+   // Ensure that the deposit won't overflow the balance.
+   if ((amount + accountBalance) > MAX_BALANCE) {
+     printf("Accounts can at most have $%d. This deposit would put you over that limit!\n", MAX_BALANCE);
++    pthread_mutex_unlock(&balance_mutex);
+     return NULL;
+   }
+ 
+@@ -48,6 +53,7 @@
+   for (unsigned short i = 0; i < amount; i++) {
+     ++accountBalance;
+   }
++  pthread_mutex_unlock(&balance_mutex);
+   return NULL;
+ }
 ```
 
 ### Explanation
-In your own words, write a couple sentences about why this code is vulnerable and how you fixed this vulnerability. *(Keep to 200 words or less; preferably much less.)*
+The problem here in the original code is that since they were running all the transactions simultaneously on multiple threads, you could write a bunch of transactions that could all potentially see the same balance and execute the transaction, even if the value wasn't accurate. This was because the threads weren't using locks, so this patch fixes that by using mutex locks on the threads so only one can access at a time.
 
 ---

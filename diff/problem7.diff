@@ -1,0 +1,43 @@
+--- .originals/problem7.c	2024-02-19 01:05:08.364762500 +0000
++++ problem7.c	2024-03-04 21:22:36.958720100 +0000
+@@ -6,6 +6,7 @@
+ #include <string.h>
+ 
+ static const int MAX_BALANCE = 2000000000;
++pthread_mutex_t balance_mutex = PTHREAD_MUTEX_INITIALIZER;
+ 
+ int accountBalance = 1000;
+ 
+@@ -25,10 +26,12 @@
+ 
+   // Subtraction seems dangerous... I'll implement my own awesome subtraction
+   // method that must be safe!
++  pthread_mutex_lock(&balance_mutex);
+   printf("Connecting to server to process withdrawal of $%hu...\n", amount);
+   for (unsigned short i = 0; i < amount; i++) {
+     --accountBalance;
+   }
++  pthread_mutex_unlock(&balance_mutex);
+   return NULL;
+ }
+ 
+@@ -36,9 +39,11 @@
+ void *deposit(void *arg) {
+   unsigned short amount = *(unsigned short *)arg;
+ 
++  pthread_mutex_lock(&balance_mutex);
+   // Ensure that the deposit won't overflow the balance.
+   if ((amount + accountBalance) > MAX_BALANCE) {
+     printf("Accounts can at most have $%d. This deposit would put you over that limit!\n", MAX_BALANCE);
++    pthread_mutex_unlock(&balance_mutex);
+     return NULL;
+   }
+ 
+@@ -48,6 +53,7 @@
+   for (unsigned short i = 0; i < amount; i++) {
+     ++accountBalance;
+   }
++  pthread_mutex_unlock(&balance_mutex);
+   return NULL;
+ }
+ 
