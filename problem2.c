@@ -10,7 +10,7 @@ void parrot(char *input) {
   char out[32];
 
   memset(out, 0, sizeof(out));
-  strcpy(out, input);
+  strncpy(out, input, sizeof(out) - 1);
 
   // Copy the user's input and print it out.
   printf("user:   %s\n", input);

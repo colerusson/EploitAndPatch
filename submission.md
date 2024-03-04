@@ -50,18 +50,35 @@ The small transaction function uses a char type, which can't be overflowed, so c
 ## problem2
 
 ### Flag
-FLAG_GOES_HERE
+flag{366-bUFF3r0v3RF10w_r3turn}
 
 ### Exploit Steps
-1. List your steps here
+1. First, I looked over the code and tried running it to find out it was a buffer overflow problem
+2. Then, you see that you need to get the backdoor() function to be called somehow
+3. You realize you need to access the backdoor function through memory, because it isn't directly called in the code
+4. So, you use objdump to find the address of backdoor in little endian - 0x8049280
+5. Then, you reverse this to little endian then to the address\x80\x92\x04\x08
+6. Then, to exploit this backdoor() function and modify the memory location, we can add 44 A (or other character) in front of it
+7. Run - ./problem2 $(python2 -c "print'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\x80\x92\x04\x08'")
 
 ### Patch
 ```diff
-+ Contents of ./diff/problem2.diff goes here
+--- .originals/problem2.c	2024-02-19 01:05:08.206312000 +0000
++++ problem2.c	2024-03-04 03:55:32.893942900 +0000
+@@ -10,7 +10,7 @@
+   char out[32];
+ 
+   memset(out, 0, sizeof(out));
+-  strcpy(out, input);
++  strncpy(out, input, sizeof(out) - 1);
+ 
+   // Copy the user's input and print it out.
+   printf("user:   %s\n", input);
 ```
 
 ### Explanation
-In your own words, write a couple sentences about why this code is vulnerable and how you fixed this vulnerability. *(Keep to 200 words or less; preferably much less.)*
+The code was vulnerable because it was originally using a more unsafe string manipulation function with strcpy(), which could copy more character than the size of the
+destination buffer. Now, we can prevent buffer overflow by using boundary checks with the safer strncpy() which takes a size argument.
 
 ---
 
